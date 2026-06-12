@@ -1,0 +1,40 @@
+name: CI - Qualidade Software
+on:
+push:
+branches: [ main ]
+pull_request:
+branches: [ main ]
+jobs:
+build-and-test:
+runs-on: ubuntu-latest
+steps:
+- name: Checkout do codigo
+uses: actions/checkout@v4
+with:
+fetch-depth: 0
+- name: Configurar Java 21
+uses: actions/setup-java@v4
+with:
+java-version: '21'
+distribution: 'temurin'
+- name: Cache Maven
+uses: actions/cache@v4
+with:
+path: ~/.m2
+key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+- name: Compilar e Testar com Cobertura
+run: mvn test jacoco:report -f pom.xml
+- name: Analise Estatica (PMD + SpotBugs)
+run: mvn pmd:check spotbugs:check -f pom.xml || true
+- name: Verificacao de Seguranca (OWASP)
+run: mvn dependency-check:check -f pom.xml -DfailBuildOnCVSS=11 || true
+- name: SonarCloud
+env:
+GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+run: mvn sonar:sonar -f pom.xml || true
+- name: Relatorio de Cobertura
+uses: actions/upload-artifact@v4
+with:
+name: jacoco-report
+path: target/site/jacoco/
