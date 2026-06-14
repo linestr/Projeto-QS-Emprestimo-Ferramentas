@@ -12,5 +12,7 @@ https://github.com/andffc/Emprestimo-de-Ferramentas
 
 ## Integrantes
 Aline Steffen Rocha
+
 Gustavo da Rosa Duarte
+
 João Victor Reinaldo
